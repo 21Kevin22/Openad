@@ -36,7 +36,7 @@ if __name__ == "__main__":
     if args.gpu != None:
         cfg.training_cfg.gpu = args.gpu
         
-    logger = IOStream(opj(cfg.work_dir, 'run.log'))
+    logger = IOStream(opj(cfg.work_dir, 'run2.log'))
     os.environ["CUDA_VISIBLE_DEVICES"] = cfg.training_cfg.gpu
     num_gpu = len(cfg.training_cfg.gpu.split(','))
     logger.cprint('Use %d GPUs: %s' % (num_gpu, cfg.training_cfg.gpu))
@@ -72,3 +72,45 @@ if __name__ == "__main__":
 
     task_trainer = Trainer(cfg, training)
     task_trainer.run()
+
+    try:
+        task_trainer.run()
+        
+    except Exception as e:
+        logger.cprint(f"[ERROR] Unhandled exception in main: {e}")
+        import traceback
+        logger.cprint(traceback.format_exc()) # スタックトレースをログに出力
+        
+    finally:
+        # --- ここからがクリーンアップ処理 ---
+        # task_trainer.run() が正常終了しても、エラーで落ちても、
+        # この finally ブロックが実行されます。
+        
+        logger.cprint("Experiment run finished. Cleaning up resources...")
+        
+        # GPU メモリを保持している可能性のある主要なオブジェクトを削除
+        try:
+            del model
+            del training
+            del task_trainer
+            del dataset_dict
+            del loader_dict
+            del train_loss
+            del optim_dict
+            logger.cprint("Deleted main objects.")
+            
+        except NameError as e:
+            # オブジェクトの初期化に失敗した場合など
+            logger.cprint(f"[WARN] Failed to delete objects (may be uninitialized): {e}")
+        except Exception as e:
+            logger.cprint(f"[WARN] Error during object deletion: {e}")
+
+        # PyTorch の CUDA キャッシュを強制的にクリア
+        torch.cuda.empty_cache()
+        logger.cprint("CUDA cache cleared.")
+        
+        # (wandb.finish() は trainer.py の run() 内部の finally で
+        # 既に呼び出されているはずです)
+        
+        logger.cprint("Cleanup complete. Exiting train.py.")
+        # --- クリーンアップ処理ここまで ---
