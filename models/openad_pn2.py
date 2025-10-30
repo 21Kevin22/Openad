@@ -18,7 +18,7 @@ class ClassEncoder(nn.Module):
         text_features = self.clip_model.encode_text(tokens).to(self.device).permute(1, 0).float()
         return text_features
 
-cls_encoder = ClassEncoder()
+# cls_encoder = ClassEncoder()  # グローバルロードを無効化
 
 class OpenAD_PN2(nn.Module):
     def __init__(self, args, num_classes, normal_channel=False):
