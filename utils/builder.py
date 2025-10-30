@@ -1,6 +1,13 @@
 import torch
-import numpy as np
 from torch.optim.lr_scheduler import CosineAnnealingLR, StepLR, LambdaLR, MultiStepLR
+import sys
+dataset_parent_dir = '/home/ubuntu/slocal2/datasets'
+sys.path.insert(0, dataset_parent_dir)
+# -----------------------------------------------------------------
+
+
+# ▼▼▼ 修正する行 (元の3行目) ▼▼▼
+# from home.ubuntu.slocal2.datasets.dataset import * <- この行を削除またはコメントアウトし、
 from dataset import *
 from models import *
 import loss
@@ -11,6 +18,7 @@ from torch.optim import SGD, Adam
 model_pool = {
     'openad_pn2': OpenAD_PN2,
     'openad_dgcnn': OpenAD_DGCNN,
+    'scenefun3D_pn2': SceneFun3DPN2
 }
 
 optim_pool = {
@@ -19,7 +27,8 @@ optim_pool = {
 }
 
 init_pool = {
-    'pn2_init': weights_init
+    'pn2_init': weights_init,
+    'scenefun3D_init': weights_init
 }
 
 scheduler_pool = {
@@ -73,10 +82,10 @@ def build_loader(cfg, dataset_dict):
     batch_size_factor = 1
     # training loader
     train_loader = DataLoader(train_set, batch_size=cfg.training_cfg.batch_size // batch_size_factor,
-                              shuffle=True, drop_last=True, num_workers=8)
+                              shuffle=True, drop_last=True, num_workers=2)  # メモリ削減のため2に変更
     # validation loader
     val_loader = DataLoader(val_set, batch_size=cfg.training_cfg.batch_size // batch_size_factor,
-                            shuffle=False, num_workers=8, drop_last=False)
+                            shuffle=False, num_workers=2, drop_last=False)  # メモリ削減のため2に変更
     loader_dict = dict(
         train_loader=train_loader,
         val_loader=val_loader

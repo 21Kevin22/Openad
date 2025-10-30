@@ -4,4 +4,10 @@ __pycache__/
 **.so
 *.pkl
 *.ipynb
-*.log
+*.loglog/
+wandb/
+dataset/
+log/
+scenefun3d/
+*.png
+*.jpg
